@@ -58,7 +58,7 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
             ItemStack sacrifice = event.getInventory().getItem(1);
             ItemStack result = event.getResult();
 
-            // Check if target and sacrifice items are not empty and sacrifice item is a Charm of Enchanting or an enhanced Enchanted Book
+            // Check if target and sacrifice items are not empty and sacrifice item is a Charm of Enchanting or an Charmed Enchanted Book
             if (target != null && sacrifice != null && sacrifice.getItemMeta().hasCustomModelData() && ((sacrifice.getItemMeta().getCustomModelData() > 11200010 && sacrifice.getItemMeta().getCustomModelData() < 11200014) || (sacrifice.getItemMeta().getCustomModelData() > 11200020 && sacrifice.getItemMeta().getCustomModelData() < 11200024))) {
 
                 // Case 1: Target = Enchanted Book, Sacrifice = Charm of Enchanting
@@ -83,7 +83,7 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
                             // Add lore
                             ItemMeta meta = result.getItemMeta();
                             List<String> lore = new ArrayList<>();
-                            lore.add(ChatColor.WHITE + "Enhanced with " + ChatColor.YELLOW + "Charm of Enchanting I" + ChatColor.WHITE + ".");
+                            lore.add(ChatColor.WHITE + "Charmed with " + ChatColor.YELLOW + "Charm of Enchanting I" + ChatColor.WHITE + ".");
                             meta.setLore(lore);
 
                             // Add CustomModelData
@@ -102,7 +102,7 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
                             // Set cost
                             event.getInventory().setRepairCost(15);
                         }
-                        // Case 1.2: Target = Enhanced Enchanted Book, Sacrifice = Charm of Enchanting II/III
+                        // Case 1.2: Target = Charmed Enchanted Book, Sacrifice = Charm of Enchanting II/III
                         else if (target.getItemMeta().hasCustomModelData() && target.getItemMeta().getCustomModelData() > 11200020 && target.getItemMeta().getCustomModelData() < 11200023 && sacrifice.getItemMeta().getCustomModelData() > 11200011 && target.getItemMeta().getCustomModelData() - sacrifice.getItemMeta().getCustomModelData() == 9) {
 
                             // Clone the target item to be the result
@@ -113,11 +113,11 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
                             List<String> lore = new ArrayList<>();
                             switch (target.getItemMeta().getCustomModelData()) {
                                 case 11200021:
-                                    lore.add(ChatColor.WHITE + "Enhanced with " + ChatColor.AQUA + "Charm of Enchanting II" + ChatColor.WHITE + ".");
+                                    lore.add(ChatColor.WHITE + "Charmed with " + ChatColor.AQUA + "Charm of Enchanting II" + ChatColor.WHITE + ".");
                                     event.getInventory().setRepairCost(25);
                                     break;
                                 case 11200022:
-                                    lore.add(ChatColor.WHITE + "Enhanced with " + ChatColor.LIGHT_PURPLE + "Charm of Enchanting III" + ChatColor.WHITE + ".");
+                                    lore.add(ChatColor.WHITE + "Charmed with " + ChatColor.LIGHT_PURPLE + "Charm of Enchanting III" + ChatColor.WHITE + ".");
                                     event.getInventory().setRepairCost(35);
                                     break;
                                 default:
@@ -141,7 +141,7 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
                     }
                 }
             }
-            // Case 2: Target = Item or Enchanted Book, Sacrifice = Enhanced Enchanted Book
+            // Case 2: Target = Item or Enchanted Book, Sacrifice = Charmed Enchanted Book
             if (result != null && (((target.getType() == Material.ENCHANTED_BOOK && target.getItemMeta().hasCustomModelData() && target.getItemMeta().getCustomModelData() > 11200020 && target.getItemMeta().getCustomModelData() < 11200024)) || (sacrifice.getType() == Material.ENCHANTED_BOOK && sacrifice.getItemMeta().hasCustomModelData() && sacrifice.getItemMeta().getCustomModelData() > 11200020 && sacrifice.getItemMeta().getCustomModelData() < 11200024))) {
 
                 // Add enchantments from both Target and Sacrifice to results
@@ -263,15 +263,15 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
         switch (level) {
             case 1:
                 meta.setDisplayName(ChatColor.YELLOW + "Charm of Enchanting I");
-                lore.add(ChatColor.GRAY + "Combine with a " + ChatColor.WHITE + "max-level" + ChatColor.GRAY + " Enchanted Book.");
+                lore.add(ChatColor.WHITE + "Combine with a " + ChatColor.GRAY + "max-level" + ChatColor.WHITE + " Enchanted Book.");
                 break;
             case 2:
                 meta.setDisplayName(ChatColor.AQUA + "Charm of Enchanting II");
-                lore.add(ChatColor.GRAY + "Combine with an Enchanted Book enhanced by " + ChatColor.YELLOW + "Charm I" + ChatColor.GRAY + ".");
+                lore.add(ChatColor.WHITE + "Combine with an Enchanted Book charmed by " + ChatColor.YELLOW + "Charm I" + ChatColor.WHITE + ".");
                 break;
             case 3:
                 meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Charm of Enchanting III");
-                lore.add(ChatColor.GRAY + "Combine with an Enchanted Book enhanced by " + ChatColor.AQUA + "Charm II" + ChatColor.GRAY + ".");
+                lore.add(ChatColor.WHITE + "Combine with an Enchanted Book charmed by " + ChatColor.AQUA + "Charm II" + ChatColor.WHITE + ".");
                 break;
             default:
                 meta.setDisplayName(ChatColor.WHITE + "Charm of Enchanting Debug Item");
