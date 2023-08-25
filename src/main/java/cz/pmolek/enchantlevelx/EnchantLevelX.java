@@ -192,6 +192,9 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
 
             // Set result item
             event.setResult(result);
+
+            // Update inventory
+            ((Player) event.getViewers().get(0)).updateInventory();
         }
     }
 
