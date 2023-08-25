@@ -1,0 +1,17 @@
+name: EnchantLevelX
+version: '1.0'
+main: cz.pmolek.enchantlevelx.EnchantLevelX
+api-version: '1.20'
+prefix: EnchantLevelX
+authors: [Petr Molek]
+description: Enables combining enchants up to level 10
+website: pmolek.cz
+commands:
+  elx:
+    description: Get the Charm of Enchanting book
+    usage: /elx <level>
+    permission: enchantlevelx.give
+permissions:
+  enchantlevelx.give:
+    description: Allows /elx command that gives Charms of Enchanting
+    default: op

@@ -1,0 +1,376 @@
+package cz.pmolek.enchantlevelx;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.world.LootGenerateEvent;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.loot.LootTable;
+import org.bukkit.loot.LootTables;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.*;
+
+import static java.lang.Integer.parseInt;
+
+public final class EnchantLevelX extends JavaPlugin implements Listener, CommandExecutor, TabCompleter {
+
+    // On plugin enable
+    @Override
+    public void onEnable() {
+        // Register events
+        getServer().getPluginManager().registerEvents(new AnvilListener(), this);
+        getServer().getPluginManager().registerEvents(new LootListener(), this);
+
+        // Register commands
+        getServer().getPluginCommand("elx").setExecutor(this);
+        getServer().getPluginCommand("elx").setTabCompleter(this);
+
+        getLogger().info("Enabled");
+    }
+
+    // On plugin disable
+    @Override
+    public void onDisable() {
+        getLogger().info("Disabled");
+    }
+
+    // Anvil listener
+    public static class AnvilListener implements Listener {
+        @EventHandler
+        public void onPrepareAnvil(PrepareAnvilEvent event) {
+
+            // Get items in anvil
+            ItemStack target = event.getInventory().getItem(0);
+            ItemStack sacrifice = event.getInventory().getItem(1);
+            ItemStack result = event.getResult();
+
+            // Check if target and sacrifice items are not empty and sacrifice item is a Charm of Enchanting or an enhanced Enchanted Book
+            if (target != null && sacrifice != null && sacrifice.getItemMeta().hasCustomModelData() && ((sacrifice.getItemMeta().getCustomModelData() > 11200010 && sacrifice.getItemMeta().getCustomModelData() < 11200014) || (sacrifice.getItemMeta().getCustomModelData() > 11200020 && sacrifice.getItemMeta().getCustomModelData() < 11200024))) {
+
+                // Case 1: Target = Enchanted Book, Sacrifice = Charm of Enchanting
+                if (target.getType() == Material.ENCHANTED_BOOK && sacrifice.getItemMeta().hasCustomModelData() && sacrifice.getItemMeta().getCustomModelData() > 11200010 && sacrifice.getItemMeta().getCustomModelData() < 11200014) {
+
+                    // Check if target is a valid Enchanted Book with only one enchantment at its maximum level or higher
+                    Map<Enchantment, Integer> targetEnchantments = getEnchantments(target);
+                    Map<Enchantment, Integer> validEnchantments = new HashMap<>();
+                    for (Map.Entry<Enchantment, Integer> enchantment : targetEnchantments.entrySet()) {
+                        if (enchantment.getValue() != 1 && enchantment.getValue() >= enchantment.getKey().getMaxLevel()) {
+                            validEnchantments.put(enchantment.getKey(), enchantment.getValue());
+                        }
+                    }
+                    if (validEnchantments.size() == 1) {
+
+                        // Case 1.1: Target = Base Enchanted Book, Sacrifice = Charm of Enchanting I
+                        if (!target.getItemMeta().hasCustomModelData() && sacrifice.getItemMeta().getCustomModelData() == 11200011) {
+
+                            // Clone the target item to be the result
+                            result = target.clone();
+
+                            // Add lore
+                            ItemMeta meta = result.getItemMeta();
+                            List<String> lore = new ArrayList<>();
+                            lore.add(ChatColor.WHITE + "Enhanced with " + ChatColor.YELLOW + "Charm of Enchanting I" + ChatColor.WHITE + ".");
+                            meta.setLore(lore);
+
+                            // Add CustomModelData
+                            meta.setCustomModelData(11200021);
+
+                            // Set item name
+                            meta.setDisplayName(event.getInventory().getRenameText());
+
+                            // Save meta
+                            result.setItemMeta(meta);
+
+                            // Add new enchant level
+                            Map.Entry<Enchantment, Integer> resultEnchantment = validEnchantments.entrySet().iterator().next();
+                            setEnchantment(result, resultEnchantment.getKey(), resultEnchantment.getValue() + 1);
+
+                            // Set cost
+                            event.getInventory().setRepairCost(15);
+                        }
+                        // Case 1.2: Target = Enhanced Enchanted Book, Sacrifice = Charm of Enchanting II/III
+                        /*
+                        Todo:
+                        Check:
+                        - Is Enhanced Enchanted Book?
+                        - Is Charm of Enchanting II or III?
+                        - Is Enhanced Enchanted Book one level lower than Charm of Enchanting?
+                        Do:
+                        - Change Lore (copy from Sacrifice item)
+                        - Add CustomModelData
+                        - Keep all enchanments and add the one extra
+                        - Cost 25/35
+                        */
+                        else if (target.getItemMeta().hasCustomModelData() && target.getItemMeta().getCustomModelData() > 11200020 && target.getItemMeta().getCustomModelData() < 11200023 && sacrifice.getItemMeta().getCustomModelData() > 11200011 && target.getItemMeta().getCustomModelData() - sacrifice.getItemMeta().getCustomModelData() == 9) {
+
+                            // Clone the target item to be the result
+                            result = target.clone();
+
+                            // Add lore and cost
+                            ItemMeta meta = result.getItemMeta();
+                            List<String> lore = new ArrayList<>();
+                            switch (target.getItemMeta().getCustomModelData()) {
+                                case 11200021:
+                                    lore.add(ChatColor.WHITE + "Enhanced with " + ChatColor.AQUA + "Charm of Enchanting II" + ChatColor.WHITE + ".");
+                                    event.getInventory().setRepairCost(25);
+                                    break;
+                                case 11200022:
+                                    lore.add(ChatColor.WHITE + "Enhanced with " + ChatColor.LIGHT_PURPLE + "Charm of Enchanting III" + ChatColor.WHITE + ".");
+                                    event.getInventory().setRepairCost(35);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            meta.setLore(lore);
+
+                            // Add CustomModelData
+                            meta.setCustomModelData(sacrifice.getItemMeta().getCustomModelData() + 10);
+
+                            // Set item name
+                            meta.setDisplayName(event.getInventory().getRenameText());
+
+                            // Save meta
+                            result.setItemMeta(meta);
+
+                            // Add new enchant level
+                            Map.Entry<Enchantment, Integer> resultEnchantment = validEnchantments.entrySet().iterator().next();
+                            setEnchantment(result, resultEnchantment.getKey(), resultEnchantment.getValue() + 1);
+                        }
+                    }
+                }
+                // Case 2: Target = Item, Sacrifice = Enhanced Enchanted Book
+                /*
+                Todo:
+                Check:
+                - Is result not empty?
+                - ...
+                */
+                else if (result != null && sacrifice.getType() == Material.ENCHANTED_BOOK && sacrifice.getItemMeta().hasCustomModelData() && sacrifice.getItemMeta().getCustomModelData() > 11200020 && sacrifice.getItemMeta().getCustomModelData() < 11200024) {
+                    getPlugin(EnchantLevelX.class).getLogger().info("------ Case 2 ------");
+                }
+
+
+
+                // TEST 1+1=2
+                /*if (target.getItemMeta().hasCustomModelData() && target.getItemMeta().getCustomModelData() == createBook(1).getItemMeta().getCustomModelData() && sacrifice.getItemMeta().hasCustomModelData() && sacrifice.getItemMeta().getCustomModelData() == createBook(1).getItemMeta().getCustomModelData()) {
+                    result = createBook(2);
+                    event.getInventory().setRepairCost(11);
+                }*/
+
+                /*// Iterate through all enchantments of the left item
+                for (Enchantment enchantment : left.getEnchantments().keySet()) {
+                    int leftLevel = left.getEnchantmentLevel(enchantment);
+                    int rightLevel = right.getEnchantmentLevel(enchantment);
+                    int finalLevel = Math.max(leftLevel, rightLevel);
+
+                    if (right.getEnchantments().containsKey(enchantment) && leftLevel == rightLevel) {
+                        finalLevel++;
+                    }
+
+                    result.addUnsafeEnchantment(enchantment, finalLevel);
+                }
+
+                for (Enchantment enchantment : right.getEnchantments().keySet()) {
+                    if (!left.getEnchantments().containsKey(enchantment)) {
+                        result.addUnsafeEnchantment(enchantment, right.getEnchantmentLevel(enchantment));
+                    }
+                }*/
+            }
+
+            // Set result item
+            event.setResult(result);
+        }
+    }
+
+    // Enchantment reading
+    private static Map<Enchantment, Integer> getEnchantments(ItemStack item) {
+        if (item.getType() == Material.ENCHANTED_BOOK) {
+            return ((org.bukkit.inventory.meta.EnchantmentStorageMeta) item.getItemMeta()).getStoredEnchants();
+        } else {
+            return item.getEnchantments();
+        }
+    }
+
+    // Enchantment saving
+    private static boolean setEnchantment(ItemStack item, Enchantment enchantment, int level) {
+        if (item.getType() == Material.ENCHANTED_BOOK) {
+            org.bukkit.inventory.meta.EnchantmentStorageMeta meta = (org.bukkit.inventory.meta.EnchantmentStorageMeta) item.getItemMeta();
+            meta.addStoredEnchant(enchantment, level, true);
+            item.setItemMeta(meta);
+        } else {
+            item.addUnsafeEnchantment(enchantment, level);
+        }
+        return true;
+    }
+
+    // Loot tables - generate Charms of Enchanting in dungeons
+    public static class LootListener implements Listener {
+        @EventHandler
+        public void onLootGenerate(LootGenerateEvent event) {
+            // Get loot
+            List<ItemStack> loot = new ArrayList<>(event.getLoot());
+            NamespacedKey lootTableKey = event.getLootTable().getKey();
+
+            // Create books
+            ItemStack book1 = createBook(1);
+            ItemStack book2 = createBook(2);
+            ItemStack book3 = createBook(3);
+
+            // Generate random number in the interval [0,1]
+            Random rand = new Random();
+            double chance = rand.nextDouble();
+
+            // High chance - Ancient City Ice Box, End City Treasure, Stronghold Library, Woodland Mansion
+            if (lootTableKey.equals(LootTables.ANCIENT_CITY_ICE_BOX.getKey())
+                    || lootTableKey.equals(LootTables.END_CITY_TREASURE.getKey())
+                    || lootTableKey.equals(LootTables.STRONGHOLD_LIBRARY.getKey())
+                    || lootTableKey.equals(LootTables.WOODLAND_MANSION.getKey()) ) {
+
+                // Check for the random number but in a way so that each loot only has up to one book
+                if (chance < 0.8) {
+                    loot.add(book3);
+                } else if (chance < 0.9) {
+                    loot.add(book2);
+                } else { // A "High chance" loot table has a 100 % chance of a book generating
+                    loot.add(book1);
+                }
+            }
+
+            // Low chance - Ancient City, Simple Dungeon, Abandoned Mineshaft, Bastion Treasure, Buried Treasure, Desert Pyramid, Jungle Temple, Nether Bridge, Stronghold Corridor, Stronghold Crossing
+            if (lootTableKey.equals(LootTables.ANCIENT_CITY.getKey())
+                    || lootTableKey.equals(LootTables.SIMPLE_DUNGEON.getKey())
+                    || lootTableKey.equals(LootTables.ABANDONED_MINESHAFT.getKey())
+                    || lootTableKey.equals(LootTables.BASTION_TREASURE.getKey())
+                    || lootTableKey.equals(LootTables.BURIED_TREASURE.getKey())
+                    || lootTableKey.equals(LootTables.DESERT_PYRAMID.getKey())
+                    || lootTableKey.equals(LootTables.JUNGLE_TEMPLE.getKey())
+                    || lootTableKey.equals(LootTables.NETHER_BRIDGE.getKey())
+                    || lootTableKey.equals(LootTables.STRONGHOLD_CORRIDOR.getKey())
+                    || lootTableKey.equals(LootTables.STRONGHOLD_CROSSING.getKey()) ) {
+
+                // Check for the random number but in a way so that each loot only has up to one book
+                if (chance < 0.13) {
+                    loot.add(book3);
+                } else if (chance < 0.36) {
+                    loot.add(book2);
+                } else if (chance < 0.55) {
+                    loot.add(book1);
+                }
+            }
+
+            // Save loot
+            event.setLoot(loot);
+        }
+    }
+
+    // Create Charm of Enchanting
+    public static ItemStack createBook(int level) {
+        // Create new item
+        ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
+        ItemMeta meta = book.getItemMeta();
+
+        // Set custom properties
+        // Item name and lore
+        List<String> lore = new ArrayList<>();
+        switch (level) {
+            case 1:
+                meta.setDisplayName(ChatColor.YELLOW + "Charm of Enchanting I");
+                lore.add(ChatColor.GRAY + "Combine with a " + ChatColor.WHITE + "max-level" + ChatColor.GRAY + " Enchanted Book.");
+                break;
+            case 2:
+                meta.setDisplayName(ChatColor.AQUA + "Charm of Enchanting II");
+                lore.add(ChatColor.GRAY + "Combine with an Enchanted Book enhanced by " + ChatColor.YELLOW + "Charm I" + ChatColor.GRAY + ".");
+                break;
+            case 3:
+                meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Charm of Enchanting III");
+                lore.add(ChatColor.GRAY + "Combine with an Enchanted Book enhanced by " + ChatColor.AQUA + "Charm II" + ChatColor.GRAY + ".");
+                break;
+            default:
+                meta.setDisplayName(ChatColor.WHITE + "Charm of Enchanting Debug Item");
+                break;
+
+        }
+        lore.add(ChatColor.GRAY + "Raises enchantment by one level.");
+        lore.add(ChatColor.GRAY + "Ignores vanilla enchantments limits.");
+        lore.add(ChatColor.DARK_GRAY + "Use in an anvil.");
+
+        // CustomModelData for Resource Pack purposes
+        // 112000 is the "prefix" for this plugin, 1 is item ID for Charm of Enchanting, then level is added
+        meta.setCustomModelData(parseInt("1120001" + level));
+
+        // Make it appear enchanted
+        meta.addEnchant(Enchantment.DURABILITY, 1, true);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+
+        // Save the metadata
+        meta.setLore(lore);
+        book.setItemMeta(meta);
+
+        return book;
+    }
+
+    // Command executor
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
+        // Check if the command is executed by a player
+        if (sender instanceof Player == false) {
+            sender.sendMessage(ChatColor.RED + "This command can only be executed by a player.");
+            return true;
+        }
+
+        // Check if the command has exactly one argument and is a number
+        if (args == null || args.length == 0 || args.length > 1 || safeParseInt(args[0]) == null || parseInt(args[0]) < 1 || parseInt(args[0]) > 3) {
+            sender.sendMessage(ChatColor.RED + "Usage: /elx <level>");
+            return true;
+        }
+
+        // Give the book
+        Player player = (Player) sender;
+        ItemStack book = createBook(parseInt(args[0]));
+        player.getInventory().addItem(book);
+
+        sender.sendMessage(ChatColor.WHITE + "You have been given Charm of Enchanting");
+
+        return true;
+    }
+
+    // Tab completer
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> options = new ArrayList<>();
+
+        if (command.getName().equalsIgnoreCase("elx")) {
+            if (args.length == 1) {
+                options.add("1");
+                options.add("2");
+                options.add("3");
+            }
+        }
+
+        return options;
+    }
+
+    // Safe parseInt
+    public static Integer safeParseInt(String string) {
+        try {
+            return Integer.parseInt(string);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+}
