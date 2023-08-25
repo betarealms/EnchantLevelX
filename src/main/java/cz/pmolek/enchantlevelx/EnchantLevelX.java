@@ -15,11 +15,12 @@ import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.loot.LootTable;
 import org.bukkit.loot.LootTables;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import java.util.*;
 
@@ -64,7 +65,7 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
                 if (target.getType() == Material.ENCHANTED_BOOK && sacrifice.getItemMeta().hasCustomModelData() && sacrifice.getItemMeta().getCustomModelData() > 11200010 && sacrifice.getItemMeta().getCustomModelData() < 11200014) {
 
                     // Check if target is a valid Enchanted Book with only one enchantment at its maximum level or higher
-                    Map<Enchantment, Integer> targetEnchantments = getEnchantments(target);
+                    Map<Enchantment, Integer> targetEnchantments = getEnchantmentsUnsafe(target);
                     Map<Enchantment, Integer> validEnchantments = new HashMap<>();
                     for (Map.Entry<Enchantment, Integer> enchantment : targetEnchantments.entrySet()) {
                         if (enchantment.getValue() != 1 && enchantment.getValue() >= enchantment.getKey().getMaxLevel()) {
@@ -96,24 +97,12 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
 
                             // Add new enchant level
                             Map.Entry<Enchantment, Integer> resultEnchantment = validEnchantments.entrySet().iterator().next();
-                            setEnchantment(result, resultEnchantment.getKey(), resultEnchantment.getValue() + 1);
+                            addEnchantmentUnsafe(result, resultEnchantment.getKey(), resultEnchantment.getValue() + 1);
 
                             // Set cost
                             event.getInventory().setRepairCost(15);
                         }
                         // Case 1.2: Target = Enhanced Enchanted Book, Sacrifice = Charm of Enchanting II/III
-                        /*
-                        Todo:
-                        Check:
-                        - Is Enhanced Enchanted Book?
-                        - Is Charm of Enchanting II or III?
-                        - Is Enhanced Enchanted Book one level lower than Charm of Enchanting?
-                        Do:
-                        - Change Lore (copy from Sacrifice item)
-                        - Add CustomModelData
-                        - Keep all enchanments and add the one extra
-                        - Cost 25/35
-                        */
                         else if (target.getItemMeta().hasCustomModelData() && target.getItemMeta().getCustomModelData() > 11200020 && target.getItemMeta().getCustomModelData() < 11200023 && sacrifice.getItemMeta().getCustomModelData() > 11200011 && target.getItemMeta().getCustomModelData() - sacrifice.getItemMeta().getCustomModelData() == 9) {
 
                             // Clone the target item to be the result
@@ -147,47 +136,30 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
 
                             // Add new enchant level
                             Map.Entry<Enchantment, Integer> resultEnchantment = validEnchantments.entrySet().iterator().next();
-                            setEnchantment(result, resultEnchantment.getKey(), resultEnchantment.getValue() + 1);
+                            addEnchantmentUnsafe(result, resultEnchantment.getKey(), resultEnchantment.getValue() + 1);
                         }
                     }
                 }
-                // Case 2: Target = Item, Sacrifice = Enhanced Enchanted Book
-                /*
-                Todo:
-                Check:
-                - Is result not empty?
-                - ...
-                */
-                else if (result != null && sacrifice.getType() == Material.ENCHANTED_BOOK && sacrifice.getItemMeta().hasCustomModelData() && sacrifice.getItemMeta().getCustomModelData() > 11200020 && sacrifice.getItemMeta().getCustomModelData() < 11200024) {
-                    getPlugin(EnchantLevelX.class).getLogger().info("------ Case 2 ------");
+            }
+            // Case 2: Target = Item or Enchanted Book, Sacrifice = Enhanced Enchanted Book
+            if (result != null && (((target.getType() == Material.ENCHANTED_BOOK && target.getItemMeta().hasCustomModelData() && target.getItemMeta().getCustomModelData() > 11200020 && target.getItemMeta().getCustomModelData() < 11200024)) || (sacrifice.getType() == Material.ENCHANTED_BOOK && sacrifice.getItemMeta().hasCustomModelData() && sacrifice.getItemMeta().getCustomModelData() > 11200020 && sacrifice.getItemMeta().getCustomModelData() < 11200024))) {
+
+                // Add enchantments from both Target and Sacrifice to results
+                for (Map.Entry<Enchantment, Integer> entry : getEnchantmentsUnsafe(target).entrySet()) {
+                    addEnchantmentUnsafe(result, entry.getKey(), entry.getValue());
+                }
+                for (Map.Entry<Enchantment, Integer> entry : getEnchantmentsUnsafe(sacrifice).entrySet()) {
+                    addEnchantmentUnsafe(result, entry.getKey(), entry.getValue());
                 }
 
-
-
-                // TEST 1+1=2
-                /*if (target.getItemMeta().hasCustomModelData() && target.getItemMeta().getCustomModelData() == createBook(1).getItemMeta().getCustomModelData() && sacrifice.getItemMeta().hasCustomModelData() && sacrifice.getItemMeta().getCustomModelData() == createBook(1).getItemMeta().getCustomModelData()) {
-                    result = createBook(2);
-                    event.getInventory().setRepairCost(11);
-                }*/
-
-                /*// Iterate through all enchantments of the left item
-                for (Enchantment enchantment : left.getEnchantments().keySet()) {
-                    int leftLevel = left.getEnchantmentLevel(enchantment);
-                    int rightLevel = right.getEnchantmentLevel(enchantment);
-                    int finalLevel = Math.max(leftLevel, rightLevel);
-
-                    if (right.getEnchantments().containsKey(enchantment) && leftLevel == rightLevel) {
-                        finalLevel++;
-                    }
-
-                    result.addUnsafeEnchantment(enchantment, finalLevel);
+                // Remove the Charm of Enchanting lore from the result
+                ItemMeta resultMeta = result.getItemMeta();
+                if (resultMeta != null && resultMeta.hasLore()) {
+                    List<String> lore = resultMeta.getLore();
+                    lore.removeIf(line -> line.contains("Charm of Enchanting"));
+                    resultMeta.setLore(lore);
+                    result.setItemMeta(resultMeta);
                 }
-
-                for (Enchantment enchantment : right.getEnchantments().keySet()) {
-                    if (!left.getEnchantments().containsKey(enchantment)) {
-                        result.addUnsafeEnchantment(enchantment, right.getEnchantmentLevel(enchantment));
-                    }
-                }*/
             }
 
             // Set result item
@@ -199,7 +171,7 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
     }
 
     // Enchantment reading
-    private static Map<Enchantment, Integer> getEnchantments(ItemStack item) {
+    private static Map<Enchantment, Integer> getEnchantmentsUnsafe(ItemStack item) {
         if (item.getType() == Material.ENCHANTED_BOOK) {
             return ((org.bukkit.inventory.meta.EnchantmentStorageMeta) item.getItemMeta()).getStoredEnchants();
         } else {
@@ -208,7 +180,7 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
     }
 
     // Enchantment saving
-    private static boolean setEnchantment(ItemStack item, Enchantment enchantment, int level) {
+    private static void addEnchantmentUnsafe(ItemStack item, Enchantment enchantment, int level) {
         if (item.getType() == Material.ENCHANTED_BOOK) {
             org.bukkit.inventory.meta.EnchantmentStorageMeta meta = (org.bukkit.inventory.meta.EnchantmentStorageMeta) item.getItemMeta();
             meta.addStoredEnchant(enchantment, level, true);
@@ -216,13 +188,13 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
         } else {
             item.addUnsafeEnchantment(enchantment, level);
         }
-        return true;
     }
 
     // Loot tables - generate Charms of Enchanting in dungeons
     public static class LootListener implements Listener {
         @EventHandler
         public void onLootGenerate(LootGenerateEvent event) {
+
             // Get loot
             List<ItemStack> loot = new ArrayList<>(event.getLoot());
             NamespacedKey lootTableKey = event.getLootTable().getKey();
