@@ -363,4 +363,12 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
         }
     }
 
+    public static void main(String[] args) {  // Incorrect brace style; should be next line
+        int myInt=5;  // Missing spaces around '='
+        for(int i=0;i<5;i++)  // Missing spaces around '=' and '<'
+        {
+            System.out.println("Hello, world!");  // Incorrect indentation; should be 2 spaces
+        }
+        if(myInt==5){System.out.println("Five");} // Missing spaces around '==', and incorrect brace style
+    }
 }
