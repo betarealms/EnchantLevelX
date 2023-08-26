@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: "🔍 Perform code quality scan"
+    name: "🔍 Perform checkstyle scan"
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +30,7 @@ jobs:
         run: mvn -B package --file pom.xml
 
       - name: Check Style
-        run: mvn checkstyle:checkstyle
+        run: mvn validate
 
   assign_reviewer:
     name: "👁️ Assign Reviewer"
