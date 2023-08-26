@@ -152,12 +152,27 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
                     addEnchantmentUnsafe(result, entry.getKey(), entry.getValue());
                 }
 
-                // Remove the Charm of Enchanting lore from the result
-                ItemMeta resultMeta = result.getItemMeta();
-                if (resultMeta != null && resultMeta.hasLore()) {
-                    List<String> lore = resultMeta.getLore();
-                    lore.removeIf(line -> line.contains("Charm of Enchanting"));
+                // Check if both Target and Sacrifice are Enchanted Books
+                if (target.getType() == Material.ENCHANTED_BOOK && sacrifice.getType() == Material.ENCHANTED_BOOK) {
+
+                    // Get meta
+                    ItemMeta targetMeta = target.getItemMeta();
+                    ItemMeta sacrificeMeta = sacrifice.getItemMeta();
+                    ItemMeta resultMeta = result.getItemMeta();
+
+                    // Check if target or sacrifice are Charmed books, if so, add its CustomModelData and lore to result
+                    List<String> lore = new ArrayList<>();
+                    if (targetMeta.hasCustomModelData() && targetMeta.getCustomModelData() > 11200020 && targetMeta.getCustomModelData() < 11200024) {
+                        resultMeta.setCustomModelData(targetMeta.getCustomModelData());
+                        lore.addAll(targetMeta.getLore());
+                    }
+                    if (sacrificeMeta.hasCustomModelData() && sacrificeMeta.getCustomModelData() > 11200020 && sacrificeMeta.getCustomModelData() < 11200024) {
+                        resultMeta.setCustomModelData(sacrificeMeta.getCustomModelData());
+                        lore.addAll(sacrificeMeta.getLore());
+                    }
                     resultMeta.setLore(lore);
+
+                    // Set item meta
                     result.setItemMeta(resultMeta);
                 }
             }
