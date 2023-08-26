@@ -22,10 +22,14 @@ import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.loot.LootTables;
 import org.bukkit.plugin.java.JavaPlugin;
 
+/**
+ *  The EnchantLevelX class serves as the main entry point for the EnchantLevelX plugin.
+ */
 public final class EnchantLevelX extends JavaPlugin
     implements Listener, CommandExecutor, TabCompleter {
 
@@ -49,8 +53,13 @@ public final class EnchantLevelX extends JavaPlugin
     getLogger().info("Disabled");
   }
 
-  // Anvil listener
+  /**
+   *  Anvil listener.
+   */
   public static class AnvilListener implements Listener {
+    /**
+     *  Anvil listener.
+     */
     @EventHandler
     public void onPrepareAnvil(PrepareAnvilEvent event) {
 
@@ -59,7 +68,8 @@ public final class EnchantLevelX extends JavaPlugin
       ItemStack sacrifice = event.getInventory().getItem(1);
       ItemStack result = event.getResult();
 
-      // Check if target and sacrifice items are not empty and sacrifice item is a Charm of Enchanting or a Charmed Enchanted Book
+      // Check if target and sacrifice items are not empty
+      // and sacrifice item is a Charm of Enchanting or a Charmed Enchanted Book
       if (target != null && sacrifice != null && sacrifice.getItemMeta().hasCustomModelData()
           && ((sacrifice.getItemMeta().getCustomModelData() > 11200010
           && sacrifice.getItemMeta().getCustomModelData() < 11200014)
@@ -72,7 +82,8 @@ public final class EnchantLevelX extends JavaPlugin
             && sacrifice.getItemMeta().getCustomModelData() > 11200010
             && sacrifice.getItemMeta().getCustomModelData() < 11200014) {
 
-          // Check if target is a valid Enchanted Book with only one enchantment at its maximum level or higher
+          // Check if target is a valid Enchanted Book with
+          // only one enchantment at its maximum level or higher
           Map<Enchantment, Integer> targetEnchantments = getEnchantmentsUnsafe(target);
           Map<Enchantment, Integer> validEnchantments = new HashMap<>();
           for (Map.Entry<Enchantment, Integer> enchantment : targetEnchantments.entrySet()) {
@@ -190,7 +201,8 @@ public final class EnchantLevelX extends JavaPlugin
           ItemMeta sacrificeMeta = sacrifice.getItemMeta();
           ItemMeta resultMeta = result.getItemMeta();
 
-          // Check if target or sacrifice are Charmed books, if so, add its CustomModelData and lore to result
+          // Check if target or sacrifice are Charmed books
+          // if so, add its CustomModelData and lore to result
           List<String> lore = new ArrayList<>();
           if (targetMeta.hasCustomModelData()
               && targetMeta.getCustomModelData() > 11200020
@@ -222,7 +234,7 @@ public final class EnchantLevelX extends JavaPlugin
   // Enchantment reading
   private static Map<Enchantment, Integer> getEnchantmentsUnsafe(ItemStack item) {
     if (item.getType() == Material.ENCHANTED_BOOK) {
-      return ((org.bukkit.inventory.meta.EnchantmentStorageMeta) item.getItemMeta()).getStoredEnchants();
+      return ((EnchantmentStorageMeta) item.getItemMeta()).getStoredEnchants();
     } else {
       return item.getEnchantments();
     }
@@ -231,8 +243,8 @@ public final class EnchantLevelX extends JavaPlugin
   // Enchantment saving
   private static void addEnchantmentUnsafe(ItemStack item, Enchantment enchantment, int level) {
     if (item.getType() == Material.ENCHANTED_BOOK) {
-      org.bukkit.inventory.meta.EnchantmentStorageMeta meta =
-          (org.bukkit.inventory.meta.EnchantmentStorageMeta) item.getItemMeta();
+      EnchantmentStorageMeta meta =
+          (EnchantmentStorageMeta) item.getItemMeta();
       meta.addStoredEnchant(enchantment, level, true);
       item.setItemMeta(meta);
     } else {
@@ -240,8 +252,13 @@ public final class EnchantLevelX extends JavaPlugin
     }
   }
 
-  // Loot tables - generate Charms of Enchanting in dungeons
+  /**
+   *  Loot tables - generate Charms of Enchanting in dungeons.
+   */
   public static class LootListener implements Listener {
+    /**
+     *  Loot tables - generate Charms of Enchanting in dungeons.
+     */
     @EventHandler
     public void onLootGenerate(LootGenerateEvent event) {
 
@@ -258,7 +275,7 @@ public final class EnchantLevelX extends JavaPlugin
       Random rand = new Random();
       double chance = rand.nextDouble();
 
-      // High chance - Ancient City Ice Box, End City Treasure, Stronghold Library, Woodland Mansion
+      // High chance Loot Tables
       if (lootTableKey.equals(LootTables.ANCIENT_CITY_ICE_BOX.getKey())
           || lootTableKey.equals(LootTables.END_CITY_TREASURE.getKey())
           || lootTableKey.equals(LootTables.STRONGHOLD_LIBRARY.getKey())
@@ -274,7 +291,7 @@ public final class EnchantLevelX extends JavaPlugin
         }
       }
 
-      // Low chance - Ancient City, Simple Dungeon, Abandoned Mineshaft, Bastion Treasure, Buried Treasure, Desert Pyramid, Jungle Temple, Nether Bridge, Stronghold Corridor, Stronghold Crossing
+      // Low chance Loot Tables
       if (lootTableKey.equals(LootTables.ANCIENT_CITY.getKey())
           || lootTableKey.equals(LootTables.SIMPLE_DUNGEON.getKey())
           || lootTableKey.equals(LootTables.ABANDONED_MINESHAFT.getKey())
@@ -301,7 +318,9 @@ public final class EnchantLevelX extends JavaPlugin
     }
   }
 
-  // Create Charm of Enchanting
+  /**
+   *  Create Charm of Enchanting.
+   */
   public static ItemStack createBook(int level) {
     // Create new item
     ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
@@ -337,7 +356,6 @@ public final class EnchantLevelX extends JavaPlugin
     lore.add(ChatColor.DARK_GRAY + "Use in an anvil.");
 
     // CustomModelData for Resource Pack purposes
-    // 112000 is the "prefix" for this plugin, 1 is item ID for Charm of Enchanting, then level is added
     meta.setCustomModelData(parseInt("1120001" + level));
 
     // Make it appear enchanted
@@ -398,6 +416,10 @@ public final class EnchantLevelX extends JavaPlugin
   }
 
   // Safe parseInt
+
+  /**
+   * Safe parseInt.
+   */
   public static Integer safeParseInt(String string) {
     try {
       return Integer.parseInt(string);
