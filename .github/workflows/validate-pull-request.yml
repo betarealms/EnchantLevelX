@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: "🔍 Perform checkstyle scan"
+    name: "🔍 Perform Checkstyle Scan"
     runs-on: ubuntu-latest
 
     steps:
