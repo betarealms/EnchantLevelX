@@ -54,6 +54,22 @@ public final class EnchantmentUtils {
   }
 
   /**
+   * Removes the specified enchantment from the given item.
+   *
+   * @param  item         the item from which to remove the enchantment
+   * @param  enchantment  the enchantment to be removed
+   */
+  public static void removeEnchantment(ItemStack item, Enchantment enchantment) {
+    if (item.getType() == Material.ENCHANTED_BOOK) {
+      EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+      meta.removeStoredEnchant(enchantment);
+      item.setItemMeta(meta);
+    } else {
+      item.removeEnchantment(enchantment);
+    }
+  }
+
+  /**
    * Retrieves a list of enchantments from an item that satisfy a given predicate.
    *
    * @param item      the item to retrieve enchantments from
