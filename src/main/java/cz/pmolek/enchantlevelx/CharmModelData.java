@@ -28,6 +28,12 @@ public enum CharmModelData {
     this.isCharm = isCharm;
   }
 
+  /**
+   * Returns a CharmModelData object with the corresponding ModelData value.
+   *
+   * @param  value  the integer value to convert
+   * @return        the corresponding CharmModelData object
+   */
   public static CharmModelData fromModelData(int value) {
     for (CharmModelData charmModelData : CharmModelData.values()) {
       if (charmModelData.modelData == value) {
@@ -37,6 +43,13 @@ public enum CharmModelData {
     throw new IllegalArgumentException("Invalid CharmModelData value: " + value);
   }
 
+  /**
+   * Returns the CharmModelData object corresponding to the given level.
+   *
+   * @param  value  the level value to search for
+   * @return        the CharmModelData object with the matching level value
+   * @throws IllegalArgumentException if the level value is invalid
+   */
   public static CharmModelData fromLevel(int value) {
     for (CharmModelData charmModelData : CharmModelData.values()) {
       if (charmModelData.level == value) {
@@ -46,6 +59,12 @@ public enum CharmModelData {
     throw new IllegalArgumentException("Invalid CharmModelData level: " + value);
   }
 
+  /**
+   * Tries to parse the given value and returns the matching CharmModelData if found.
+   *
+   * @param  value   the value to parse
+   * @return         the matching CharmModelData, or null if no match is found
+   */
   @Nullable
   public static CharmModelData tryParse(String value) {
     for (CharmModelData charmModelData : CharmModelData.values()) {
@@ -56,12 +75,26 @@ public enum CharmModelData {
     return null;
   }
 
+  /**
+   * Check if the given item is an enchanted book with the specified charm model data.
+   *
+   * @param  item     the item to check
+   * @param  specific the charm model data to compare against
+   * @return          true if the given item is an enchanted book
+   *                  with the specified charm model data, false otherwise
+   */
   public static boolean isCharmItem(@Nullable ItemStack item, CharmModelData specific) {
     return item != null
         && item.getType() == Material.ENCHANTED_BOOK
         && ItemUtils.hasCustomModelData(item, specific.modelData);
   }
 
+  /**
+   * Determines if the given item is a charmed enchanted book.
+   *
+   * @param  item  the ItemStack to check
+   * @return       true if the given item is a charmed enchanted book., false otherwise
+   */
   public static boolean isCharmedBook(@Nullable ItemStack item) {
     return item != null
         && item.getType() == Material.ENCHANTED_BOOK

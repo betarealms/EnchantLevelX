@@ -5,6 +5,9 @@ import cz.pmolek.enchantlevelx.EnchantmentUtils;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.inventory.ItemStack;
 
+/**
+ * Enchant definition for an anvil enchant.
+ */
 public class CharmedBookUpgradeEnchantT3 extends CharmEnchantBase {
   @Override
   public String getId() {

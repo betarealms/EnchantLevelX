@@ -6,6 +6,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.LootGenerateEvent;
 
+/**
+ * Generator for loot.
+ */
 public class LootGenerator implements Listener {
   private final List<LootDefinition> lootDefinitions = new ArrayList<>();
 
@@ -21,6 +24,11 @@ public class LootGenerator implements Listener {
     lootDefinitions.remove(lootDefinition);
   }
 
+  /**
+   * Handles the event when loot is generated.
+   *
+   * @param  event  the LootGenerateEvent object representing the event
+   */
   @EventHandler
   public void onLootGenerate(LootGenerateEvent event) {
     for (LootDefinition lootDefinition : lootDefinitions) {

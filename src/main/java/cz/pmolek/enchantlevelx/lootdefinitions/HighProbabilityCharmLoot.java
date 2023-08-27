@@ -10,6 +10,9 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.loot.LootTables;
 
+/**
+ * Loot tables for Charm books in high quality chests.
+ */
 public class HighProbabilityCharmLoot extends LootTableAdderLoot {
   public HighProbabilityCharmLoot() {
     super(createAcceptedLootTables(), createItems(), 1);
