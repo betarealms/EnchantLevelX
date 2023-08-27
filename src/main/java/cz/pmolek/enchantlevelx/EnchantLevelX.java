@@ -73,7 +73,10 @@ public final class EnchantLevelX extends JavaPlugin implements Listener, Command
         }
 
         // Check if the command has exactly one argument and is a number
-        if (args == null || args.length == 0 || args.length > 1 || safeParseInt(args[0]) == null || parseInt(args[0]) < 1 || parseInt(args[0]) > 3) {
+        if (args == null
+                || args.length != 1
+                || safeParseInt(args[0]) == null
+                || parseInt(args[0]) < 1 || parseInt(args[0]) > 3) {
             sender.sendMessage(ChatColor.RED + "Usage: /elx <level>");
             return true;
         }
