@@ -3,43 +3,52 @@ package cz.pmolek.enchantlevelx;
 import java.util.Map;
 import java.util.Objects;
 
-public class Tuple<A, B>{
-    private final A a;
-    private final B b;
+/**
+ * Tuple of two items.
+ *
+ * @param <A> the type of the first item.
+ *
+ * @param <B> the type of the second item.
+ */
+public class Tuple<A, B> {
+  private final A valueA;
+  private final B valueB;
 
-    public Tuple(A a, B b) {
-        this.a = a;
-        this.b = b;
-    }
+  public Tuple(A a, B b) {
+    this.valueA = a;
+    this.valueB = b;
+  }
 
-    public A getA() {
-        return a;
-    }
+  public static <A, B> Tuple<A, B> of(Map.Entry<A, B> entry) {
+    return new Tuple<>(entry.getKey(), entry.getValue());
+  }
 
-    public B getB() {
-        return b;
-    }
+  public static <A, B> Tuple<A, B> of(A a, B b) {
+    return new Tuple<>(a, b);
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Tuple<?, ?> tuple = (Tuple<?, ?>) o;
-        return Objects.equals(a, tuple.a) && Objects.equals(b, tuple.b);
-    }
+  public A getValueA() {
+    return valueA;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(a, b);
-    }
+  public B getValueB() {
+    return valueB;
+  }
 
-    public static <A, B> Tuple<A, B> of(Map.Entry<A, B> entry)
-    {
-        return new Tuple<>(entry.getKey(), entry.getValue());
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Tuple<?, ?> tuple = (Tuple<?, ?>) o;
+    return Objects.equals(valueA, tuple.valueA) && Objects.equals(valueB, tuple.valueB);
+  }
 
-    public static <A, B> Tuple<A, B> of(A a, B b)
-    {
-        return new Tuple<>(a, b);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(valueA, valueB);
+  }
 }
