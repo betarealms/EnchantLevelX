@@ -2,8 +2,12 @@ package cz.pmolek.enchantlevelx.enchanter;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import javax.annotation.Nullable;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
  */
 public class AnvilEnchanter implements Listener {
   private final Map<String, AnvilEnchantDefinition> enchants = new HashMap<>();
+  private final Set<UUID> ignoredPlayers = new HashSet<>();
 
   /**
    * Adds an AnvilEnchantDefinition to the enchants map.
@@ -43,6 +48,10 @@ public class AnvilEnchanter implements Listener {
     enchants.remove(id);
   }
 
+  public void ignoreNextEventFrom(HumanEntity player) {
+    ignoredPlayers.add(player.getUniqueId());
+  }
+
   /**
    * This function is an event handler that is called when the PrepareAnvilEvent is triggered.
    * It retrieves the items in the anvil, finds the appropriate enchantment to apply,
@@ -52,6 +61,11 @@ public class AnvilEnchanter implements Listener {
    */
   @EventHandler
   public void onPrepareAnvil(PrepareAnvilEvent event) {
+    HumanEntity sender = event.getViewers().get(0);
+    if (ignoredPlayers.contains(sender.getUniqueId())) {
+      ignoredPlayers.remove(sender.getUniqueId());
+      return;
+    }
     // Get items in anvil
     ItemStack left = event.getInventory().getItem(0);
     ItemStack right = event.getInventory().getItem(1);

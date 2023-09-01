@@ -2,6 +2,7 @@ package cz.pmolek.enchantlevelx;
 
 import static java.lang.Integer.parseInt;
 
+import cz.pmolek.enchantlevelx.enchantdefinitions.CharmableEnchantTransferEnchant;
 import cz.pmolek.enchantlevelx.enchantdefinitions.CharmedBookUpgradeEnchantT2;
 import cz.pmolek.enchantlevelx.enchantdefinitions.CharmedBookUpgradeEnchantT3;
 import cz.pmolek.enchantlevelx.enchantdefinitions.EnchantedBookUpgradeEnchantT1;
@@ -71,6 +72,7 @@ public final class EnchantLevelX extends JavaPlugin
     enchanter.addEnchant(new CharmedBookUpgradeEnchantT3());
     enchanter.addEnchant(new ItemUpgradeWithCharmedBookEnchant());
     enchanter.addEnchant(new OverclockedItemUpgradeWithNormalBook());
+    enchanter.addEnchant(new CharmableEnchantTransferEnchant(enchanter));
     return enchanter;
   }
 
